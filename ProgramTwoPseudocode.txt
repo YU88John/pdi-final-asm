@@ -1,0 +1,251 @@
+START
+
+# DataRetrieval Program Pseudocode
+
+# Import necessary libraries
+IMPORT Scanner
+IMPORT DataAnalysis
+IMPORT DisplayAnalysis
+IMPORT GroupAnalysis
+IMPORT Nation
+
+# Main program
+CLASS DataRetrieval
+
+PROMPT "Enter the CSV file path: "
+READ FilePath
+
+# Call the readCovidData method from DataAnalysis class
+Nations = DataAnalysis.readCovidData(FilePath)
+
+# Check if data reading was successful
+IF Nations is not null THEN
+    # Call helper methods for analysis output
+    DataAnalysis.calculatePercentage(Nations)
+    DisplayAnalysis.displayResults(Nations)
+
+    # Prompt user to enter the continent code to filter
+    PROMPT "Enter the continent code to filter (e.g., \"EU\" or \"NA\"): "
+    ChosenContinent = READ
+
+    # Call performGroupAnalysis method from GroupAnalysis class
+    GroupAnalysis.performGroupAnalysis(Nations, ChosenContinent)
+END IF
+
+CLOSE Scanner
+
+# DataAnalysis Class Pseudocode
+# Methods for reading COVID data, calculating percentages, and sorting countries
+
+CLASS DataAnalysis:
+METHOD readCovidData(FilePath):
+    # Reads COVID data from a CSV file and returns an array of Nation objects
+
+    DECLARE Nations as Nation array
+
+    # Open the file for reading
+    OPEN file at FilePath
+
+    # Read the column header and skip it
+    READ Header from file
+
+    # Count the number of nations in the file
+    WHILE READ Line from file is not null:
+        Increment numberOfNations
+    END WHILE
+
+    # Reset the file reader to the beginning of the file
+    CLOSE file
+    OPEN file at FilePath
+    READ Header from file  # Skip the header
+
+    # Initialize the array to store Nation objects
+    Nations = new Nation[numberOfNations]
+
+    # Read data line by line
+    FOR i = 0 TO numberOfNations - 1:
+        READ Line from file
+        # Extract data from the CSV line
+        # Create a Nation object and add it to the array
+        Nations[i] = new Nation(countryName, nationalCode, detectedCases, deaths, continent)
+    END FOR
+
+    CLOSE file
+    RETURN Nations
+
+METHOD calculatePercentage(Nations):
+    FOR EACH Nation in Nations:
+        IF Nation.getDetectedCases() > 0 THEN
+            # Calculate the percentage of deaths and round it to three decimal places
+            DECLARE Percentage = ((double) Nation.getDeaths() / Nation.getDetectedCases()) * 100
+            DECLARE RoundedPercentage = ROUND(Percentage, 3)
+            Nation.setPercentageOfDeaths(RoundedPercentage)
+        END IF
+    END FOR
+
+METHOD sortCountriesByPercentage(Nations):
+    FOR i = 0 TO LENGTH(Nations) - 2:
+        FOR j = i + 1 TO LENGTH(Nations) - 1:
+            IF Nations[i].getPercentageOfDeaths() < Nations[j].getPercentageOfDeaths() THEN
+                SWAP(Nations, i, j)
+            END IF
+        END FOR
+    END FOR
+
+METHOD sortCountriesByTotalCases(Nations):
+    FOR i = 0 TO LENGTH(Nations) - 2:
+        FOR j = i + 1 TO LENGTH(Nations) - 1:
+            IF Nations[i].getDetectedCases() < Nations[j].getDetectedCases() THEN
+                SWAP(Nations, i, j)
+            END IF
+        END FOR
+    END FOR
+
+METHOD sortCountriesByTotalDeaths(Nations):
+    FOR i = 0 TO LENGTH(Nations) - 2:
+        FOR j = i + 1 TO LENGTH(Nations) - 1:
+            IF Nations[i].getDeaths() < Nations[j].getDeaths() THEN
+                SWAP(Nations, i, j)
+            END IF
+        END FOR
+    END FOR
+
+METHOD findHighestPercentageCountry(Nations):
+    DECLARE HighestPercentageCountry = Nations[0]
+    FOR i = 1 TO LENGTH(Nations) - 1:
+        IF Nations[i].getPercentageOfDeaths() > HighestPercentageCountry.getPercentageOfDeaths() THEN
+            # Update the HighestPercentageCountry if a higher percentage is found
+            HighestPercentageCountry = Nations[i]
+        END IF
+    END FOR
+    RETURN HighestPercentageCountry
+
+METHOD swap(Nations, i, j):
+    Nations - Array of Nation objects, i - Index of the first element, j - Index of the second element
+    DECLARE Temp = Nations[i]
+    Nations[i] = Nations[j]
+    Nations[j] = Temp // temporary variables
+
+
+# DisplayAnalysis Class Pseudocode
+# Methods for displaying analysis results
+
+CLASS DisplayAnalysis:
+METHOD displayResults(Nations):
+
+    displaySortedByPercentage(Nations)
+    displaySortedByTotalCases(Nations)
+    displaySortedByTotalDeaths(Nations)
+    displayHighestPercentageCountry(Nations)
+
+METHOD displaySortedByPercentage(Nations):
+
+    DataAnalysis.sortCountriesByPercentage(Nations)
+    PRINT "Countries sorted by percentage of deaths (descending order):"
+    displayCountries(Nations)
+
+METHOD displaySortedByTotalCases(Nations):
+
+    DataAnalysis.sortCountriesByTotalCases(Nations)
+    PRINT "Countries sorted by total cases (descending order):"
+    displayCountries(Nations)
+
+METHOD displaySortedByTotalDeaths(Nations):
+
+    DataAnalysis.sortCountriesByTotalDeaths(Nations)
+    PRINT "Countries sorted by total deaths (descending order):"
+    displayCountries(Nations)
+
+METHOD displayCountries(Nations):
+
+    FOR EACH Nation in Nations:
+        PRINT Nation
+    END FOR
+
+METHOD displayHighestPercentageCountry(Nations):
+
+    DECLARE HighestPercentageCountry = DataAnalysis.findHighestPercentageCountry(Nations)
+    PRINT "Country with the highest percentage of deaths:"
+    PRINT HighestPercentageCountry
+    PRINT
+
+# GroupAnalysis Class Pseudocode
+# Methods for performing group analysis and filtering nations by continent
+
+CLASS GroupAnalysis:
+METHOD performGroupAnalysis(Nations, ChosenContinent):
+
+    DECLARE FilteredNations = filterByContinent(Nations, ChosenContinent)
+
+    IF LENGTH(FilteredNations) > 0 THEN
+        DataAnalysis.calculatePercentage(FilteredNations)
+        DisplayAnalysis.displayResults(FilteredNations)
+    ELSE
+        PRINT "No data available for the chosen continent: " + ChosenContinent
+    END IF
+
+METHOD filterByContinent(Nations, ChosenContinent):
+
+    DECLARE Count = 0
+    FOR EACH Nation in Nations:
+        IF Nation.getContinent().equalsIgnoreCase(ChosenContinent) THEN
+            Increment Count
+        END IF
+    END FOR
+
+    # Initialize the array for the chosen continent
+    DECLARE FilteredNations = new Nation[Count]
+    DECLARE Index = 0
+
+    # Add nations from the chosen continent to the array
+    FOR EACH Nation in Nations:
+        IF Nation.getContinent().equalsIgnoreCase(ChosenContinent) THEN
+            FilteredNations[Index++] = Nation
+        END IF
+    END FOR
+
+    RETURN FilteredNations
+
+# Nation Class Pseudocode
+# Fields, constructor, getter, setter, and toString methods
+
+CLASS Nation:
+     # Fields to store nation-specific data
+     DECLARE countryName, nationalCode, detectedCases, deaths, continent, percentageOfDeaths
+
+     # Constructor to initialize the Nation object with data
+     METHOD Nation(countryName, nationalCode, detectedCases, deaths, continent):
+         SET this.countryName = countryName
+         SET this.nationalCode = nationalCode
+         SET this.detectedCases = detectedCases
+         SET this.deaths = deaths
+         SET this.continent = continent
+
+     METHOD getPercentageOfDeaths():
+         RETURN percentageOfDeaths
+
+     METHOD setPercentageOfDeaths(PercentageOfDeaths):
+         SET this.percentageOfDeaths = PercentageOfDeaths
+
+     METHOD getDetectedCases():
+         RETURN detectedCases
+
+     METHOD getDeaths():
+         RETURN deaths
+
+     METHOD getContinent():
+         RETURN continent
+
+     # Override toString method to provide a formatted string representation of the Nation object
+     METHOD toString():
+         RETURN "Nation {" +
+                 "Country Name='" + countryName + '\'' +
+                 ", National Code='" + nationalCode + '\'' +
+                 ", Detected Cases=" + detectedCases +
+                 ", Deaths=" + deaths +
+                 ", Continent='" + continent + '\'' +
+                 ", Percentage of Deaths=" + percentageOfDeaths +
+                 '}'
+
+
+END

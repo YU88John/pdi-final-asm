@@ -1,0 +1,76 @@
+START
+
+
+# Function to collect data for each nation
+FUNCTION CollectNationData():
+    DECLARE CountryNames[]
+    DECLARE NationalCodes[]
+    DECLARE DetectedCases[]
+    DECLARE Deaths[]
+    DECLARE Continents[]
+
+FOR i=0, i < NumberOfNations, i++
+
+    DO
+    PROMPT CountryName
+    READ CountryName
+    ADD CountryNames[]
+    OUTPUT "Error. Enter a string for country name"
+    WHILE CountryName is EMPTY OR CountryName is INTEGER
+
+    DO
+    PROMPT NationalCode
+    READ NationalCode
+    ADD NationalCodes[]
+    OUTPUT "Error. Enter a string for national code"
+    WHILE NationalCode is EMPTY OR NationalCode is INTEGER
+
+    DO
+    PROMPT DetectedCases
+    READ DetectedCases
+    ADD DetectedCases[]
+    OUTPUT "Error. Only positive integers are accepted"
+    WHILE DetectedCases is NOT INTEGER or DetectedCases < 0
+
+    DO
+    PROMPT Deaths
+    READ Deaths
+    ADD Deaths[]
+    OUTPUT "Error. Only positive integers are accepted. Deaths cannot be greater than detected cases"
+    WHILE Deaths is NOT INTEGER or Deaths < 0 or Deaths > DetectedCases
+
+    DO
+    PROMPT Continent
+    READ Continent
+    ADD Continents[]
+    OUTPUT "Error. Enter a valid continent."
+    WHILE Continent !CONTAINS {"EU", "AF", "AS", "NA", "SA", "AU", "OT"}
+
+END FOR
+
+RETURN CountryNames[], NationalCodes[], DetectedCases[], Deaths[], Continents[]
+
+# Main program
+PROMPT "Enter the number of nations: "
+READ NumberOfNations
+
+DECLARE CountryNames[], NationalCodes[], DetectedCases[], Deaths[], Continents[]
+
+# Call function to collect data
+CountryNames[], NationalCodes[], DetectedCases[], Deaths[], Continents[] = CollectNationData()
+
+PROMPT FileName
+READ FileName
+LET FullFileName = FileName
+WRITE TO CSV
+
+OUTPUT "Entered data for each nation is"
+FOR i=0, i < NumberOfNations, i++
+    OUTPUT CountryNames[i]
+    OUTPUT NationalCodes[i]
+    OUTPUT DetectedCases[i]
+    OUTPUT Deaths[i]
+    OUTPUT Continents[i]
+END FOR
+
+END
